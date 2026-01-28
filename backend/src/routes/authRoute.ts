@@ -5,7 +5,8 @@ import {
   logout,
   getMe,
   refreshToken,
-
+  sendVerificationEmail,
+  verifyAccount,
 } from "../controllers/authController.ts";
 import { authenticateToken } from "../middlewares/auth.ts";
 import {
@@ -50,7 +51,12 @@ const authRoute = Router();
  *         description: Server error
  */
 // Public routes
-authRoute.post("/register", validateRegistration, handleValidationErrors, register);
+authRoute.post(
+  "/register",
+  validateRegistration,
+  handleValidationErrors,
+  register,
+);
 
 /**
  * @swagger
@@ -110,6 +116,54 @@ authRoute.post("/logout", logout);
  *         description: Invalid refresh token
  */
 authRoute.post("/refresh-token", refreshToken);
+
+/**
+ * @swagger
+ * /api/auth/sendVerificationEmail:
+ *   post:
+ *     summary: Send account verification email
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Verification email sent
+ *       400:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+
+authRoute.post("/sendVerificationEmail", authenticateToken, sendVerificationEmail);
+
+/**
+ * @swagger
+ * /api/auth/verify-account:
+ *   post:
+ *     summary: Verify user account
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - otp
+ *             properties:
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid OTP or User not found
+ *       500:
+ *         description: Server error
+ */
+authRoute.post("/verify-account", authenticateToken, verifyAccount);
 
 /**
  * @swagger
