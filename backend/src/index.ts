@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import { connectDatabase } from "./config/database.ts";
 import authRoute from "./routes/authRoute.ts";
 import { specs, swaggerUi } from "./config/swagger.ts";
+import userRoute from "./routes/userRoutes.ts";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoute);
+app.use("/api/user", userRoute);
 
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));

@@ -6,14 +6,16 @@ import {
   getMe,
   refreshToken,
   sendVerificationEmail,
-  verifyAccount,
+  verifyAccount
 } from "../controllers/authController.ts";
 import { authenticateToken } from "../middlewares/auth.ts";
+
 import {
   validateRegistration,
   validateLogin,
   handleValidationErrors,
 } from "../middlewares/validation.ts";
+import { upload } from "../config/multer.ts";
 
 const authRoute = Router();
 

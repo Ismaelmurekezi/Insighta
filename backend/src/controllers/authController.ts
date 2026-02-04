@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/userModel.ts";
 import "dotenv/config";
 import transporter from "../config/nodemailer.ts";
+import cloudinary from "../config/cloudinary.ts";
 
 const ACCESS_TOKEN: string = process.env.ACCESS_TOKEN || "";
 const REFRESH_TOKEN_SECRET: string = process.env.REFRESH_TOKEN_SECRET || "";
@@ -243,3 +244,4 @@ export const verifyAccount = async (req: AuthRequest, res: Response) => {
       .json({ success: false, message: error?.message || "Server error" });
   }
 };
+
