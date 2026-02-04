@@ -6,7 +6,14 @@ import {
   getMe,
   refreshToken,
   sendVerificationEmail,
-  verifyAccount
+  verifyAccount,
+  uploadProfileImage,
+  deleteProfileImage,
+  updateProfile,
+  updatePassword,
+  forgotPassword,
+  resetPassword,
+  deleteAccount,
 } from "../controllers/authController.ts";
 import { authenticateToken } from "../middlewares/auth.ts";
 
@@ -192,5 +199,16 @@ authRoute.post("/verify-account", authenticateToken, verifyAccount);
  */
 // Protected routes
 authRoute.get("/me", authenticateToken, getMe);
+authRoute.post("/upload-profile-image", authenticateToken, upload.single("profileImage"), uploadProfileImage);
+authRoute.delete("/delete-profile-image", authenticateToken, deleteProfileImage);
+authRoute.put("/update-profile", authenticateToken, updateProfile);
+authRoute.put("/update-password", authenticateToken, updatePassword);
+
+// Public routes for password reset
+authRoute.post("/forgot-password", forgotPassword);
+authRoute.post("/reset-password", resetPassword);
+
+// Delete account (user or admin)
+authRoute.delete("/delete-account/:userId", authenticateToken, deleteAccount);
 
 export default authRoute;
