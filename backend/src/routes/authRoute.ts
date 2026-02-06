@@ -3,17 +3,11 @@ import {
   register,
   login,
   logout,
-  getMe,
   refreshToken,
   sendVerificationEmail,
   verifyAccount,
-  uploadProfileImage,
-  deleteProfileImage,
-  updateProfile,
-  updatePassword,
   forgotPassword,
   resetPassword,
-  deleteAccount,
 } from "../controllers/authController.ts";
 import { authenticateToken } from "../middlewares/auth.ts";
 
@@ -22,7 +16,7 @@ import {
   validateLogin,
   handleValidationErrors,
 } from "../middlewares/validation.ts";
-import { upload } from "../config/multer.ts";
+
 
 const authRoute = Router();
 
@@ -173,42 +167,62 @@ authRoute.post("/sendVerificationEmail", authenticateToken, sendVerificationEmai
  *         description: Server error
  */
 authRoute.post("/verify-account", authenticateToken, verifyAccount);
-
 /**
  * @swagger
- * /api/auth/me:
- *   get:
- *     summary: Get current user info
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Initiate password reset
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
  *     responses:
  *       200:
- *         description: User info
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   type: object
- *       401:
- *         description: Invalid token
+ *         description: Password reset initiated
+ *       400:
+ *         description: Invalid email or user not found
  *       500:
  *         description: Server error
  */
-// Protected routes
-authRoute.get("/me", authenticateToken, getMe);
-authRoute.post("/upload-profile-image", authenticateToken, upload.single("profileImage"), uploadProfileImage);
-authRoute.delete("/delete-profile-image", authenticateToken, deleteProfileImage);
-authRoute.put("/update-profile", authenticateToken, updateProfile);
-authRoute.put("/update-password", authenticateToken, updatePassword);
-
-// Public routes for password reset
 authRoute.post("/forgot-password", forgotPassword);
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset user password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Invalid token or password
+ *       500:
+ *         description: Server error
+ */
 authRoute.post("/reset-password", resetPassword);
-
-// Delete account (user or admin)
-authRoute.delete("/delete-account/:userId", authenticateToken, deleteAccount);
 
 export default authRoute;

@@ -4,10 +4,10 @@ import bcrypt from "bcryptjs";
 import User from "../models/userModel.ts";
 import "dotenv/config";
 import transporter from "../config/nodemailer.ts";
-import cloudinary from "../config/cloudinary.ts";
 
 const ACCESS_TOKEN: string = process.env.ACCESS_TOKEN || "";
 const REFRESH_TOKEN_SECRET: string = process.env.REFRESH_TOKEN_SECRET || "";
+const RESET_TOKEN_SECRET: string = process.env.RESET_TOKEN_SECRET || "";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -47,7 +47,39 @@ export const register = async (req: Request, res: Response) => {
       from: process.env.SENDER_EMAIL,
       to: email,
       subject: "Welcome to Insighta Platform!",
-      text: `Hello ${username},\n\nThank you for registering at our platform. We're excited to have you on board!\n\nBest regards,\nThe Team`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #75B06F 0%, #5a9054 100%); padding: 40px 20px; text-align: center; }
+            .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+            .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
+            .content h2 { color: #75B06F; margin-top: 0; }
+            .footer { background: #f8f8f8; padding: 20px; text-align: center; color: #666666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Welcome to Insighta!</h1>
+            </div>
+            <div class="content">
+              <h2>Hello ${username},</h2>
+              <p>Thank you for registering at our platform. We're excited to have you on board!</p>
+              <p>Get started by exploring our features and making the most of your account.</p>
+              <p>If you have any questions, feel free to reach out to our support team.</p>
+              <p>Best regards,<br><strong>The Insighta Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} Insighta Platform. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
@@ -86,8 +118,8 @@ export const login = async (req: Request, res: Response) => {
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 3600000,
     });
-    if(user.isAccountVerified===false){
-      return  res.status(400).json({
+    if (user.isAccountVerified === false) {
+      return res.status(400).json({
         message: "Verify your account to login",
       });
     }
@@ -119,15 +151,6 @@ export const logout = async (req: Request, res: Response) => {
   }
 };
 
-// Get current user
-export const getMe = async (req: AuthRequest, res: Response) => {
-  try {
-    const { password: _, ...userWithoutPassword } = req.user.toObject();
-    res.status(200).json({ user: userWithoutPassword });
-  } catch (error: any) {
-    res.status(500).json({ message: error?.message || "Server error" });
-  }
-};
 // Refresh access token
 export const refreshToken = async (req: Request, res: Response) => {
   try {
@@ -167,7 +190,10 @@ export const refreshToken = async (req: Request, res: Response) => {
   }
 };
 
-export const sendVerificationEmail = async (req: AuthRequest, res: Response) => {
+export const sendVerificationEmail = async (
+  req: AuthRequest,
+  res: Response,
+) => {
   try {
     const userId = req.user._id;
 
@@ -193,8 +219,42 @@ export const sendVerificationEmail = async (req: AuthRequest, res: Response) => 
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Account Verification Code",
-      text: `Your account verification code is: ${verificationCode}. in which you can use to verify your account.
-       It will expire in 10 minutes.`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #75B06F 0%, #5a9054 100%); padding: 40px 20px; text-align: center; }
+            .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+            .content { padding: 40px 30px; color: #333333; line-height: 1.6; text-align: center; }
+            .code-box { background: #f8f8f8; border: 2px dashed #75B06F; border-radius: 8px; padding: 20px; margin: 30px 0; }
+            .code { font-size: 32px; font-weight: bold; color: #75B06F; letter-spacing: 5px; }
+            .warning { color: #E33629; font-size: 14px; margin-top: 20px; }
+            .footer { background: #f8f8f8; padding: 20px; text-align: center; color: #666666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Verify Your Account</h1>
+            </div>
+            <div class="content">
+              <p>Please use the verification code below to verify your account:</p>
+              <div class="code-box">
+                <div class="code">${verificationCode}</div>
+              </div>
+              <p class="warning">⚠️ This code will expire in 50 minutes</p>
+              <p>If you didn't request this code, please ignore this email.</p>
+            </div>
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} Insighta Platform. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
@@ -245,99 +305,6 @@ export const verifyAccount = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const uploadProfileImage = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No image file provided" });
-    }
-
-    const result = await cloudinary.uploader.upload(
-      `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
-      {
-        folder: "profile_images",
-        transformation: [{ width: 300, height: 300, crop: "fill" }],
-      }
-    );
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { profile_avatar: result.secure_url },
-      { new: true }
-    ).select("-password");
-
-    res.status(200).json({
-      message: "Profile image uploaded successfully",
-      profileImage: result.secure_url,
-      user,
-    });
-  } catch (error: any) {
-    res.status(500).json({ message: error?.message || "Server error" });
-  }
-};
-
-export const deleteProfileImage = async (req: AuthRequest, res: Response) => {
-  try {
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { profile_avatar: process.env.DEFAULT_AVATAR },
-      { new: true }
-    ).select("-password");
-
-    res.status(200).json({
-      message: "Profile image deleted successfully",
-      user,
-    });
-  } catch (error: any) {
-    res.status(500).json({ message: error?.message || "Server error" });
-  }
-};
-
-export const updateProfile = async (req: AuthRequest, res: Response) => {
-  try {
-    const { username, bio } = req.body;
-    const updateData: any = {};
-
-    if (username) updateData.username = username;
-    if (bio) updateData.bio = bio;
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      updateData,
-      { new: true }
-    ).select("-password");
-
-    res.status(200).json({
-      message: "Profile updated successfully",
-      user,
-    });
-  } catch (error: any) {
-    res.status(500).json({ message: error?.message || "Server error" });
-  }
-};
-
-export const updatePassword = async (req: AuthRequest, res: Response) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isCurrentPasswordValid) {
-      return res.status(400).json({ message: "Current password is incorrect" });
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    await User.findByIdAndUpdate(req.user._id, { password: hashedNewPassword });
-
-    res.status(200).json({ message: "Password updated successfully" });
-  } catch (error: any) {
-    res.status(500).json({ message: error?.message || "Server error" });
-  }
-};
-
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -347,7 +314,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const resetToken = jwt.sign({ userId: user._id }, process.env.RESET_TOKEN_SECRET || "reset_secret", { expiresIn: "15m" });
+    const resetToken = jwt.sign(
+      { userId: user._id },
+      RESET_TOKEN_SECRET,
+      { expiresIn: "15m" },
+    );
     user.resetPasswordOtp = resetToken;
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();
@@ -358,7 +329,43 @@ export const forgotPassword = async (req: Request, res: Response) => {
       from: process.env.SENDER_EMAIL,
       to: email,
       subject: "Password Reset Link",
-      text: `Click the link to reset your password: ${resetLink}. This link will expire in 15 minutes.`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, #E33629 0%, #c02a1f 100%); padding: 40px 20px; text-align: center; }
+            .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+            .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
+            .button { display: inline-block; background: #75B06F; color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+            .button:hover { background: #5a9054; }
+            .warning { color: #E33629; font-size: 14px; margin-top: 20px; }
+            .footer { background: #f8f8f8; padding: 20px; text-align: center; color: #666666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Reset Your Password</h1>
+            </div>
+            <div class="content">
+              <p>We received a request to reset your password. Click the button below to create a new password:</p>
+              <div style="text-align: center;">
+                <a href="${resetLink}" class="button">Reset Password</a>
+              </div>
+              <p class="warning">⚠️ This link will expire in 15 minutes</p>
+              <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
+              <p style="font-size: 12px; color: #666; margin-top: 30px;">If the button doesn't work, copy and paste this link into your browser:<br>${resetLink}</p>
+            </div>
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} Insighta Platform. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
@@ -373,15 +380,20 @@ export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { token, newPassword } = req.body;
 
-    const decoded = jwt.verify(token, process.env.RESET_TOKEN_SECRET || "reset_secret") as any;
+    const decoded = jwt.verify(
+      token,
+      process.env.RESET_TOKEN_SECRET || "reset_secret",
+    ) as any;
     const user = await User.findById(decoded.userId);
-    
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     if (!user.resetPasswordOtp || user.resetPasswordOtp !== token) {
-      return res.status(400).json({ message: "Invalid or expired reset token" });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
     }
 
     if (!user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
@@ -396,27 +408,14 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error: any) {
-    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
-      return res.status(400).json({ message: "Invalid or expired reset token" });
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
     }
-    res.status(500).json({ message: error?.message || "Server error" });
-  }
-};
-
-export const deleteAccount = async (req: AuthRequest, res: Response) => {
-  try {
-    const { userId } = req.params;
-    const targetUserId = userId || req.user._id;
-
-    // Check if user is admin or deleting own account
-    if (userId && req.user.role !== "admin" && userId !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
-    await User.findByIdAndDelete(targetUserId);
-
-    res.status(200).json({ message: "Account deleted successfully" });
-  } catch (error: any) {
     res.status(500).json({ message: error?.message || "Server error" });
   }
 };

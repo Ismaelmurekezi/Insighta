@@ -1,9 +1,33 @@
 import { Router } from "express";
-import { deleteProfileImage, updatePassword, updateProfile, uploadProfileImage } from "../controllers/userController.ts";
+import {
+  getMe,
+  updateProfile,
+  updatePassword,
+  uploadProfileImage,
+  deleteProfileImage,
+  deleteAccount,
+} from "../controllers/userController.ts";
 import { authenticateToken } from "../middlewares/auth.ts";
 import { upload } from "../config/multer.ts";
 
 const userRoute = Router();
+
+/**
+ * @swagger
+ * /api/user/me:
+ *   get:
+ *     summary: Get current user profile
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *       500:
+ *         description: Server error
+ */
+
+userRoute.get("/me", authenticateToken, getMe);
 
 /**
  * @swagger
@@ -117,6 +141,30 @@ userRoute.put("/update-profile", authenticateToken, updateProfile);
  *         description: Server error
  */
 userRoute.put("/update-password", authenticateToken, updatePassword);
+/**
+ * @swagger
+ * /api/auth/delete-account/{userId}:
+ *   delete:
+ *     summary: Delete user account
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user to delete
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ *       400:
+ *         description: User not found
+ *       500:
+ *         description: Server error  
+ */
 
+userRoute.delete("/delete-account/:userId", authenticateToken, deleteAccount);
 
 export default userRoute;

@@ -8,7 +8,15 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
-
+// Get current user
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    const { password: _, ...userWithoutPassword } = req.user.toObject();
+    res.status(200).json({ user: userWithoutPassword });
+  } catch (error: any) {
+    res.status(500).json({ message: error?.message || "Server error" });
+  }
+};
 
 export const uploadProfileImage = async (req: AuthRequest, res: Response) => {
   try {
@@ -99,6 +107,28 @@ export const updatePassword = async (req: AuthRequest, res: Response) => {
     await User.findByIdAndUpdate(req.user._id, { password: hashedNewPassword });
 
     res.status(200).json({ message: "Password updated successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: error?.message || "Server error" });
+  }
+};
+
+export const deleteAccount = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const targetUserId = userId || req.user._id;
+
+    // Check if user is admin or deleting own account
+    if (
+      userId &&
+      req.user.role !== "admin" &&
+      userId !== req.user._id.toString()
+    ) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    await User.findByIdAndDelete(targetUserId);
+
+    res.status(200).json({ message: "Account deleted successfully" });
   } catch (error: any) {
     res.status(500).json({ message: error?.message || "Server error" });
   }
