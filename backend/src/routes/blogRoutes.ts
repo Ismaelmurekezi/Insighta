@@ -2,6 +2,7 @@ import { Router } from "express";
 import { createBlog, deleteBlog, getAllBlogs, getBlog, getBlogsByAuthor, updateBlog } from "../controllers/blogController.ts";
 import { authenticateToken } from "../middlewares/auth.ts";
 import { upload } from "../config/multer.ts";
+import { isAdmin } from "../middlewares/isAdmin.ts";
 
 const blogRoute = Router();
 
@@ -146,7 +147,7 @@ blogRoute.put("/update/:id", authenticateToken, upload.single("coverImage"), upd
  *       500:
  *        description: Server error
  */
-blogRoute.delete("/delete/:id", deleteBlog);
+blogRoute.delete("/delete/:id",authenticateToken,deleteBlog);
 
 
 export default blogRoute;

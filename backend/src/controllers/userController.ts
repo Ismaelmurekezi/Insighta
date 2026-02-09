@@ -112,23 +112,37 @@ export const updatePassword = async (req: AuthRequest, res: Response) => {
   }
 };
 
+//user deleting his own account
 export const deleteAccount = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.params;
-    const targetUserId = userId || req.user._id;
+    const user = await User.findByIdAndDelete(req.user._id).select("-password");
 
-    // Check if user is admin or deleting own account
-    if (
-      userId &&
-      req.user.role !== "admin" &&
-      userId !== req.user._id.toString()
-    ) {
-      return res.status(403).json({ message: "Access denied" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    await User.findByIdAndDelete(targetUserId);
+    res.status(200).json({
+      message: "Account deleted successfully",
+      user,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error?.message || "Server error" });
+  }
+};
 
-    res.status(200).json({ message: "Account deleted successfully" });
+// user controller functions that require admin access
+
+export const getAllUsers = async (req: AuthRequest, res: Response) => {
+  try {
+    const users = await User.find().select("-password");
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+    res.status(200).json({
+      message: "Users retrieved successfully",
+      users,
+    });
   } catch (error: any) {
     res.status(500).json({ message: error?.message || "Server error" });
   }

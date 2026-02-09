@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import cloudinary from "../config/cloudinary.ts";
 import Blog from "../models/blogModel.ts";
+import User from "../models/userModel.ts";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -227,19 +228,23 @@ export const updateBlog = async (req: AuthRequest, res: Response) => {
 export const deleteBlog = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   try {
+    const user = await User.findById(req.user._id);
     const blog = await Blog.findById(id);
 
     if (!blog) {
       return res.status(404).json({
         success: false,
-        message: "Blog not found",
+        message: `Blog not found`,
       });
     }
 
-    if (blog.author.toString() !== req.user._id.toString()) {
+    const isOwner = blog.author.toString() === req.user._id.toString();
+    const isAdmin = user?.role === "admin" || req.user?.role === "admin";
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized to delete this blog",
+        message: `Unauthorized to delete this blog}`,
       });
     }
 
@@ -256,4 +261,3 @@ export const deleteBlog = async (req: AuthRequest, res: Response) => {
     });
   }
 };
-

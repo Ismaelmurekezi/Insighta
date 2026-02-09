@@ -143,28 +143,21 @@ userRoute.put("/update-profile", authenticateToken, updateProfile);
 userRoute.put("/update-password", authenticateToken, updatePassword);
 /**
  * @swagger
- * /api/auth/delete-account/{userId}:
+ * /api/auth/delete-account:
  *   delete:
- *     summary: Delete user account
+ *     summary: Delete current user's account
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the user to delete
  *     responses:
  *       200:
  *         description: Account deleted successfully
  *       400:
  *         description: User not found
  *       500:
- *         description: Server error  
+ *         description: Server error
  */
 
-userRoute.delete("/delete-account/:userId", authenticateToken, deleteAccount);
+userRoute.delete("/delete-account", authenticateToken, deleteAccount);
 
 export default userRoute;

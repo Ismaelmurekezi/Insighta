@@ -40,6 +40,14 @@ export const register = async (req: Request, res: Response) => {
     });
 
     await newUser.save();
+    const accessToken = generateAccessToken(newUser);
+
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      maxAge: 3600000,
+    });
 
     //Sending welcome email
 
@@ -314,11 +322,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const resetToken = jwt.sign(
-      { userId: user._id },
-      RESET_TOKEN_SECRET,
-      { expiresIn: "15m" },
-    );
+    const resetToken = jwt.sign({ userId: user._id }, RESET_TOKEN_SECRET, {
+      expiresIn: "15m",
+    });
     user.resetPasswordOtp = resetToken;
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();

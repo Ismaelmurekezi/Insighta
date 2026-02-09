@@ -6,6 +6,7 @@ import authRoute from "./routes/authRoute.ts";
 import { specs, swaggerUi } from "./config/swagger.ts";
 import userRoute from "./routes/userRoutes.ts";
 import blogRoute from "./routes/blogRoutes.ts";
+import adminRouter from "./routes/adminRoute.ts";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/blog", blogRoute);
+app.use("/api/admin", adminRouter);
 
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
