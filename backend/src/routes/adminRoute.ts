@@ -3,7 +3,7 @@ import { isAdmin } from "../middlewares/isAdmin.ts";
 
 const adminRouter = Router();
 import { authenticateToken } from "../middlewares/auth.ts";
-import { deleteUserAccount, togglePublishBlog } from "../controllers/adminController.ts";
+import { deleteUserAccount, getOneBlog, getUser, togglePublishBlog } from "../controllers/adminController.ts";
 import { getAllUsers } from "../controllers/userController.ts";
 
 /**
@@ -86,5 +86,60 @@ adminRouter.get("/user/getAllUsers", authenticateToken, isAdmin, getAllUsers);
  *         description: Server error
  */
 adminRouter.delete("/user/deleteUser/:userId", authenticateToken, isAdmin, deleteUserAccount);
+/**
+ * @swagger
+ * /api/admin/user/getUser/{userId}:
+ *   get:
+ *     summary: Get user details by ID (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User details fetched successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied. This action is restricted to Admins only.
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+adminRouter.get("/user/getUser/:userId", authenticateToken, isAdmin, getUser);
+/**
+ * @swagger
+ * /api/admin/blog/getBlog/{id}:
+ *   get:
+ *     summary: Get blog details by ID (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Blog details fetched successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied. This action is restricted to Admins only.
+ *       404:
+ *         description: Blog not found
+ *       500:
+ *         description: Server error
+ */
+adminRouter.get("/blog/getBlog/:id", authenticateToken,isAdmin,getOneBlog);
+
 
 export default adminRouter;
