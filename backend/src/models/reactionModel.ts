@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const reactionSchema = new mongoose.Schema(
   {
     blog: {
-      object: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Blog",
       required: true,
     },

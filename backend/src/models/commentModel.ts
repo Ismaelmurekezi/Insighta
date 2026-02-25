@@ -1,11 +1,9 @@
-
 import mongoose from "mongoose";
-
 
 const commentSchema = new mongoose.Schema(
   {
     blog: {
-      object: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Blog",
       required: true,
     },

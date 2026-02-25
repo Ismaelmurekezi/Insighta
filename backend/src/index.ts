@@ -7,6 +7,7 @@ import { specs, swaggerUi } from "./config/swagger.ts";
 import userRoute from "./routes/userRoutes.ts";
 import blogRoute from "./routes/blogRoutes.ts";
 import adminRouter from "./routes/adminRoute.ts";
+import commentRoute from "./routes/commentRoutes.ts";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/blog", blogRoute);
 app.use("/api/admin", adminRouter);
+app.use("/api/blog/comment", commentRoute);
 
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
