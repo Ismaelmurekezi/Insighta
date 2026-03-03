@@ -59,4 +59,18 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Cascade delete user's blogs, comments, and reactions when user is deleted
+userSchema.pre("deleteOne", { document: true, query: false }, async function () {
+  const userId = this._id;
+  
+  // Import models here to avoid circular dependency
+  const Blog = mongoose.model("Blog");
+  const Comment = mongoose.model("Comment");
+  const Reaction = mongoose.model("Reaction");
+
+  await Blog.deleteMany({ author: userId });
+  await Comment.deleteMany({ user: userId });
+  await Reaction.deleteMany({ user: userId });
+});
+
 export default mongoose.model("User", userSchema);

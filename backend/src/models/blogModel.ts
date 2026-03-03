@@ -100,6 +100,18 @@ const blogSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Cascade delete blog's comments and reactions when blog is deleted
+blogSchema.pre("deleteOne", { document: true, query: false }, async function () {
+  const blogId = this._id;
+  
+  const Comment = mongoose.model("Comment");
+  const Reaction = mongoose.model("Reaction");
+
+  await Comment.deleteMany({ blog: blogId });
+  await Reaction.deleteMany({ blog: blogId });
+});
+
 const Blog = mongoose.model("Blog", blogSchema);
 
 export default Blog;
+  
