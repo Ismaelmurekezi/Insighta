@@ -82,20 +82,6 @@ const blogSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    comments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Comment",
-        required: true,
-      },
-    ],
-    reactions: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Reaction",
-        required: true,
-      },
-    ],
   },
   { timestamps: true },
 );

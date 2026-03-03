@@ -12,26 +12,16 @@ export const addComment = async (req: AuthRequest, res: Response) => {
     const { content } = req.body;
     const userId = req.user._id;
 
-    const blog = await Blog.findById(blogId);
-    if (!blog) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Blog not found" });
-    }
-
     const comment = new Comment({
       content,
       user: userId,
       blog: blogId,
     });
 
-    const savedComment = await comment.save();
+    await comment.save();
+    await Blog.findByIdAndUpdate(blogId, { $inc: { commentCount: 1 } });
 
-    // Update the blog's comments array
-    blog.comments.push(savedComment._id);
-    await blog.save();
-
-    res.status(201).json(savedComment);
+    res.status(201).json(comment);
   } catch (error: any) {
     res
       .status(500)
@@ -76,17 +66,15 @@ export const deleteComment = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    // Check if the user is the author of the comment
     if (comment.user.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    await Comment.findByIdAndDelete(commentId);
+    comment.isDeleted = true;
+    await comment.save();
 
-    // Remove the comment from the blog's comments array
-    await Blog.findByIdAndUpdate(comment.blog, {
-      $pull: { comments: commentId },
-    });
+    await Comment.findByIdAndDelete(commentId);
+    await Blog.findByIdAndUpdate(comment.blog, { $inc: { commentCount: -1 } });
 
     res.status(200).json({ message: "Comment deleted successfully" });
   } catch (error: any) {
@@ -112,6 +100,7 @@ export const updateComment = async (req: AuthRequest, res: Response) => {
 
     // Update the comment content
     comment.content = content;
+    comment.isEdited = true;
     const updatedComment = await comment.save();
 
     res.status(200).json(updatedComment);

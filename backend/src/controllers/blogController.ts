@@ -86,10 +86,11 @@ export const getBlog = async (req: Request, res: Response) => {
       });
     }
 
-    const blog = await Blog.findOne({ slug }).populate(
-      "author",
-      "username email profile_avatar",
-    );
+    const blog = await Blog.findOneAndUpdate(
+      { slug },
+      { $inc: { viewCount: 1 } },
+      { new: true }
+    ).populate("author", "username email profile_avatar");
 
     if (!blog) {
       return res.status(404).json({
@@ -98,10 +99,20 @@ export const getBlog = async (req: Request, res: Response) => {
       });
     }
 
+    const Comment = (await import("../models/commentModel.ts")).default;
+    const Reaction = (await import("../models/reactionModel.ts")).default;
+
+    const [comments, reactions] = await Promise.all([
+      Comment.find({ blog: blog._id }).populate("user", "username profile_avatar").sort({ createdAt: -1 }),
+      Reaction.find({ blog: blog._id }).populate("user", "username profile_avatar"),
+    ]);
+
     res.status(200).json({
       success: true,
       message: "Blog fetched successfully",
       blog,
+      comments,
+      reactions,
     });
   } catch (error: any) {
     res.status(500).json({

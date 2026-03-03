@@ -12,13 +12,6 @@ export const addReaction = async (req: AuthRequest, res: Response) => {
   const userId = req.user._id;
 
   try {
-    const blogExist = await Blog.findById(blogId);
-    if (!blogExist) {
-      return res.status(404).json({
-        success: false,
-        message: "Blog not found",
-      });
-    }
     const existingReaction = await Reaction.findOne({
       user: `${userId}`,
       blog: `${blogId}`,
@@ -30,25 +23,17 @@ export const addReaction = async (req: AuthRequest, res: Response) => {
         user: userId,
         blog: blogId,
       });
-      const savedReaction = await newReaction.save();
-
-      // Update the blog's comments array
-      blogExist.reactions.push(savedReaction._id);
-      await blogExist.save();
+      await newReaction.save();
+      await Blog.findByIdAndUpdate(blogId, { $inc: { reactionCount: 1 } });
       return res.status(201).json(newReaction);
     }
 
-    // case 2
     if (existingReaction.type === type) {
       await Reaction.deleteOne({ _id: existingReaction._id });
-      blogExist.reactions = blogExist.reactions.filter(
-        (id: any) => id.toString() !== existingReaction._id.toString()
-      );
-      await blogExist.save();
+      await Blog.findByIdAndUpdate(blogId, { $inc: { reactionCount: -1 } });
       return res.json({ message: "reaction removed" });
     }
 
-    //case 3
     existingReaction.type = type;
     await existingReaction.save();
 
