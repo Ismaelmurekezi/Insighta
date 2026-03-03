@@ -8,6 +8,8 @@ import userRoute from "./routes/userRoutes.ts";
 import blogRoute from "./routes/blogRoutes.ts";
 import adminRouter from "./routes/adminRoute.ts";
 import commentRoute from "./routes/commentRoutes.ts";
+import reactionRoute from "./routes/reactionRoutes.ts";
+
 
 dotenv.config();
 
@@ -28,6 +30,7 @@ app.use("/api/user", userRoute);
 app.use("/api/blog", blogRoute);
 app.use("/api/admin", adminRouter);
 app.use("/api/blog/comment", commentRoute);
+app.use("/api/blog/reaction",reactionRoute);
 
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));

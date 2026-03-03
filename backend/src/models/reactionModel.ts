@@ -14,12 +14,14 @@ const reactionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["like", "love", "insightful", "funny", "sad", "angry"],
+      enum: ["like", "love", "insightful", "funny", "sad"],
       required: true,
     },
   },
   { timestamps: true },
 );
+
+// reactionSchema.index({ blog: 1, user: 1 }, { unique: true });
 
 const Reaction = mongoose.model("Reaction", reactionSchema);
 
