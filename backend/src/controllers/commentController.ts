@@ -70,11 +70,15 @@ export const deleteComment = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    comment.isDeleted = true;
-    await comment.save();
-
     await Comment.findByIdAndDelete(commentId);
-    await Blog.findByIdAndUpdate(comment.blog, { $inc: { commentCount: -1 } });
+    
+    const updates: Promise<any>[] = [Blog.findByIdAndUpdate(comment.blog, { $inc: { commentCount: -1 } })];
+    
+    if (comment.parentComment) {
+      updates.push(Comment.findByIdAndUpdate(comment.parentComment, { $inc: { replyCount: -1 } }));
+    }
+    
+    await Promise.all(updates);
 
     res.status(200).json({ message: "Comment deleted successfully" });
   } catch (error: any) {
@@ -104,6 +108,37 @@ export const updateComment = async (req: AuthRequest, res: Response) => {
     const updatedComment = await comment.save();
 
     res.status(200).json(updatedComment);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error || "Server Error" });
+  }
+};
+
+
+export const addReply = async (req: AuthRequest, res: Response) => {
+  try {
+    const { commentId } = req.params;
+    const { content } = req.body;
+    const userId = req.user._id;
+
+    const parentComment = await Comment.findById(commentId);
+    if (!parentComment) {
+      return res.status(404).json({ message: "Parent comment not found" });
+    }
+
+    const replyComment = new Comment({
+      content,
+      user: userId,
+      blog: parentComment.blog,
+      parentComment: parentComment._id,
+    });
+
+    await replyComment.save();
+    await Promise.all([
+      Comment.findByIdAndUpdate(parentComment._id, { $inc: { replyCount: 1 } }),
+      Blog.findByIdAndUpdate(parentComment.blog, { $inc: { commentCount: 1 } }),
+    ]);
+
+    res.status(201).json(replyComment);
   } catch (error: any) {
     res.status(500).json({ success: false, message: error || "Server Error" });
   }

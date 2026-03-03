@@ -5,6 +5,7 @@ import {
   getCommentsByBlog,
   updateComment,
   deleteComment,
+  addReply,
 } from "../controllers/commentController.ts";
 import { authenticateToken } from "../middlewares/auth.ts";
 
@@ -132,5 +133,42 @@ commentRoute.put("/update/:commentId", authenticateToken, updateComment);
  */
 
 commentRoute.delete("/delete/:commentId", authenticateToken, deleteComment);
+
+/**
+ * @swagger
+ * /api/blog/comment/reply/{id}:
+ *  post:
+ *    summary: Adding reply to a comment
+ *    tags: [Comment]
+ *    security:
+ *       -bearAuth: []
+ *    requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *    parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *          -type: string
+ *         description: This endpoints is for adding reply to a comment
+ *    responses:
+ *       201:
+ *         description: Reply added successfully
+ *       403:
+ *         description: Unauthorized to reply to this comment
+ *       404:
+ *         description: Comment not found
+ *       500:
+ *        description: Server error
+ */
+
+commentRoute.post("/reply/:commentId", authenticateToken, addReply);
 
 export default commentRoute;

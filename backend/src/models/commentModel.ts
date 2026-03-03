@@ -25,10 +25,6 @@ const commentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
     reactionCount: {
       type: Number,
       default: 0,
